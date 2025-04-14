@@ -1,6 +1,7 @@
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.Scanner;
 
 class LongLineException extends RuntimeException {
@@ -15,7 +16,7 @@ public class Main {
     public static void main(String[] args) {
 
         Scanner scanner = new Scanner(System.in);
-        int count = 0;
+
 
         while (true) {
             System.out.println("Введите путь к файлу");
@@ -35,34 +36,37 @@ public class Main {
             System.out.println("Путь указан верно");
             try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
                 String line;
-                int totalLines = 0;
-                int maxLength = 0;
-                int minLength = Integer.MAX_VALUE;
-
+                int totalRequests = 0;
+                int googlebotCount = 0;
+                int yandexBotCount = 0;
                 while ((line = reader.readLine()) != null) {
-                    totalLines++;
                     int length = line.length();
 
                     if (length > 1024) {
                         throw new LongLineException("Строка превышает 1024 символа: " + length);
                     }
+                    totalRequests++;
+                    String[] parts = line.split("\"");
+                    if (parts.length >= 6) {
+                        String userAgent = parts[5];
 
-                    maxLength = Math.max(maxLength, length);
-                    minLength = Math.min(minLength, length);
+
+                        if (userAgent.contains("Googlebot")) {
+                            googlebotCount++;
+                        } else if (userAgent.contains("YandexBot")) {
+                            yandexBotCount++;
+                        }
+                    }
                 }
 
-                if (totalLines == 0) {
-                    System.out.println("Файл пуст.");
-                } else {
-                    System.out.println("Общее количество строк: " + totalLines);
-                    System.out.println("Длина самой длинной строки: " + maxLength);
-                    System.out.println("Длина самой короткой строки: " + (minLength == Integer.MAX_VALUE ? 0 : minLength));
-                }
+                System.out.println("Общее количество запросов: " + totalRequests);
+                System.out.println("Googlebot: " + googlebotCount + " (" +
+                        (totalRequests > 0 ? (100 * googlebotCount / totalRequests) : 0) + "%)");
+                System.out.println("YandexBot: " + yandexBotCount + " (" +
+                        (totalRequests > 0 ? (100 * yandexBotCount / totalRequests) : 0) + "%)");
 
-            } catch (LongLineException ex) {
-                System.err.println("Ошибка: " + ex.getMessage());
-            } catch (Exception ex) {
-                System.err.println("Ошибка при чтении файла: " + ex.getMessage());
+            } catch (IOException e) {
+                System.err.println("Ошибка: " + e.getMessage());
             }
         }
     }
