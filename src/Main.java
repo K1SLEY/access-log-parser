@@ -62,6 +62,13 @@ public class Main {
                 osStats.forEach((os, ratio) ->
                         System.out.printf("%s: %.2f%%\n", os, ratio * 100));
 
+
+                HashMap<String, Double> browserStats = stats.getBrowserStats();
+                System.out.println("Cтраницы с ошибкой 404: ");
+                stats.getNotFoundPages().forEach(page -> System.out.println("-! " + page));
+                browserStats.forEach((browser, ratio) ->
+                        System.out.printf("%s: %.2f%%\n", browser, ratio * 100));
+
                 System.out.println("Общее количество запросов: " + totalRequests);
 
                 System.out.printf("Средний трафик в час: %.2f мб/час%n", stats.getTrafficRate() / 1048576);
