@@ -2,6 +2,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Scanner;
 
 class LongLineException extends RuntimeException {
@@ -37,8 +39,8 @@ public class Main {
             try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
                 String line;
                 int totalRequests = 0;
-                int googlebotCount = 0;
-                int yandexBotCount = 0;
+
+
                 while ((line = reader.readLine()) != null) {
 
                     int length = line.length();
@@ -50,26 +52,19 @@ public class Main {
                     }
                     totalRequests++;
 
-                    String[] parts = line.split("\"");
 
-                    if (parts.length >= 6) {
-                        String userAgent = parts[5];
-
-
-                        if (userAgent.contains("Googlebot")) {
-                            googlebotCount++;
-                        } else if (userAgent.contains("YandexBot")) {
-                            yandexBotCount++;
-                        }
-                    }
                 }
 
+                System.out.println("Существующие страницы: ");
+                stats.getExistingPages().forEach(page -> System.out.println("- " + page));
+
+                HashMap<String, Double> osStats = stats.getOsStatistics();
+                osStats.forEach((os, ratio) ->
+                        System.out.printf("%s: %.2f%%\n", os, ratio * 100));
+
                 System.out.println("Общее количество запросов: " + totalRequests);
-                System.out.println("Googlebot: " + googlebotCount + " (" +
-                        (totalRequests > 0 ? (100 * googlebotCount / totalRequests) : 0) + "%)");
-                System.out.println("YandexBot: " + yandexBotCount + " (" +
-                        (totalRequests > 0 ? (100 * yandexBotCount / totalRequests) : 0) + "%)");
-                System.out.printf("Средний трафик в час: %.2f мб/час%n", stats.getTrafficRate()/1048576);
+
+                System.out.printf("Средний трафик в час: %.2f мб/час%n", stats.getTrafficRate() / 1048576);
             } catch (IOException e) {
                 System.err.println("Ошибка: " + e.getMessage());
             }
