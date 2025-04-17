@@ -34,7 +34,7 @@ class Statistics {
         osStats.put(os, osStats.getOrDefault(os, 0) + 1);
 
         String browser = entry.getUserAgent().getBrowser();
-        browserStats.put(browser, browserStats.getOrDefault(os, 0) + 1);
+        browserStats.put(browser, browserStats.getOrDefault(browser, 0) + 1);
     }
 
     public HashSet<String> getExistingPages() {
