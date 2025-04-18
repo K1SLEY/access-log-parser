@@ -1,6 +1,7 @@
 class UserAgent {
     private final String os;
     private final String browser;
+    private String rawUserAgent;
 
     public UserAgent(String userAgentString) {
 
@@ -14,8 +15,14 @@ class UserAgent {
         else if (userAgentString.contains("Chrome")) this.browser = "Chrome";
         else if (userAgentString.contains("Opera")) this.browser = "Opera";
         else this.browser = "Other";
+
+        this.rawUserAgent = (userAgentString == null || userAgentString.isEmpty()) ? "" : userAgentString.toLowerCase();
     }
 
+
+    public boolean isBot() {
+        return this.rawUserAgent.contains("bot");
+    }
 
     public String getOs() {
         return os;

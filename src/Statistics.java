@@ -11,6 +11,9 @@ class Statistics {
     private final HashMap<String, Integer> osStats = new HashMap<>();
     private final HashSet<String> notFoundPages = new HashSet<>();
     private final HashMap<String, Integer> browserStats = new HashMap<>();
+    private int validVisits = 0;
+    private int errorRequests = 0;
+    private final HashSet<String> uniqueValidIPs = new HashSet<>();
 
     public void addEntry(LogEntry entry) {
         if (entry.getDataSize() > 0) {
@@ -35,6 +38,38 @@ class Statistics {
 
         String browser = entry.getUserAgent().getBrowser();
         browserStats.put(browser, browserStats.getOrDefault(browser, 0) + 1);
+        processAdvancedMetrics(entry);
+    }
+
+    private void processAdvancedMetrics(LogEntry entry) {
+        boolean isBot = entry.getUserAgent().isBot();
+
+        if (entry.getResponseCode() >= 400 && entry.getResponseCode() < 600) {
+            errorRequests++;
+        }
+        if (!isBot) {
+            validVisits++;
+            uniqueValidIPs.add(entry.getIp());
+        }
+    }
+
+    public double getAverageVisitsPerHour() {
+        if (minTime == null || maxTime == null || validVisits == 0) return 0.0;
+
+        long hours = ChronoUnit.HOURS.between(minTime, maxTime);
+        return hours > 0 ? (double) validVisits / hours : validVisits;
+    }
+
+    public double getAverageErrorsPerHour() {
+        if (minTime == null || maxTime == null || errorRequests == 0) return 0.0;
+
+        long hours = ChronoUnit.HOURS.between(minTime, maxTime);
+        return hours > 0 ? (double) errorRequests / hours : errorRequests;
+    }
+
+    public double getAverageVisitsPerUser() {
+        if (uniqueValidIPs.isEmpty()) return 0.0;
+        return (double) validVisits / uniqueValidIPs.size();
     }
 
     public HashSet<String> getExistingPages() {
@@ -48,9 +83,7 @@ class Statistics {
     public HashMap<String, Double> getBrowserStats() {
         HashMap<String, Double> resultBrowser = new HashMap<>();
         int totalRequests = browserStats.values().stream().mapToInt(Integer::intValue).sum();
-
         if (totalRequests == 0) return resultBrowser;
-
         double totalRequestsDouble = (double) totalRequests;
         browserStats.forEach((browser, count) -> resultBrowser.put(browser, (double) count / totalRequestsDouble));
         return resultBrowser;
